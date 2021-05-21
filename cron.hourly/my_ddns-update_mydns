@@ -1,0 +1,31 @@
+#!/bin/sh
+#
+# @(#) ddns-update.sh 2016/12/11
+#
+# DESCRIPTION:
+#   Send updated IP address to DDNS
+#
+# COPYING:
+#	Copyright 2016 Yusuke Fukutsuka <donsuke.f@gmail.com>
+##############################################################
+
+# Settings
+DDNS_UPDATE="https://www.mydns.jp/login.html"
+DDNS_UPDATE_IPV4="https://ipv4.mydns.jp/login.html"
+DDNS_UPDATE_IPV6="https://ipv6.mydns.jp/login.html"
+DDNS_DOMAIN=""
+DDNS_ACCOUNT=""
+DDNS_PASSWORD=""
+
+num_ipv4=`ip -o -4 address show ppp0 | wc -l`
+num_ipv6=`ip -o -6 address show ppp0 scope global | wc -l`
+
+# Notify my IP address to MyDNS (Update DDNS)
+# Update IPv6 address
+[ "${num_ipv6}" -gt 0 ] && curl -u ${DDNS_ACCOUNT}:${DDNS_PASSWORD} ${DDNS_UPDATE_IPV6} 2>&1 > /dev/null
+# Update IPv4 address
+[ "${num_ipv4}" -gt 0 ] && curl -u ${DDNS_ACCOUNT}:${DDNS_PASSWORD} ${DDNS_UPDATE_IPV4} 2>&1 > /dev/null
+# Update primary IP address
+#curl -u ${DDNS_ACCOUNT}:${DDNS_PASSWORD} ${DDNS_UPDATE} 2>&1 > /dev/null
+
+exit $?

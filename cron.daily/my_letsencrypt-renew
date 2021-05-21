@@ -1,0 +1,40 @@
+#!/bin/sh
+
+letsencrypt renew
+
+# Update IPSec keys
+#PEM_DIR=`find /etc/letsencrypt/live | grep -e "pem$" | xargs dirname | uniq`
+PEM_DIR=""
+updated=0
+diff ${PEM_DIR}/privkey.pem /etc/ipsec.d/private/privkey.pem 2>&1 > /dev/null
+#if [ $? -ne 0 ]; then
+#	cp "${PEM_DIR}/privkey.pem" /etc/ipsec.d/private
+#	chmod 600 /etc/ipsec.d/private/privkey.pem
+#	updated=`expr ${updated} + 1`
+#fi
+#diff ${PEM_DIR}/cert.pem /etc/ipsec.d/certs/cert.pem 2>&1 > /dev/null
+#if [ $? -ne 0 ]; then
+#	cp "${PEM_DIR}/cert.pem" /etc/ipsec.d/certs
+#	chmod 600 /etc/ipsec.d/certs/cert.pem
+#	updated=`expr ${updated} + 1`
+#fi
+#diff ${PEM_DIR}/chain.pem /etc/ipsec.d/cacerts/chain.pem 2>&1 > /dev/null
+#if [ $? -ne 0 ]; then
+#	cp "${PEM_DIR}/chain.pem" /etc/ipsec.d/cacerts
+#	chmod 600 /etc/ipsec.d/cacerts/chain.pem
+#	updated=`expr ${updated} + 1`
+#fi
+if [ $? -ne 0 ]; then
+	cp "${PEM_DIR}/privkey.pem" /etc/ipsec.d/private
+	chmod 600 /etc/ipsec.d/private/privkey.pem
+	cp "${PEM_DIR}/cert.pem" /etc/ipsec.d/certs
+	chmod 600 /etc/ipsec.d/certs/cert.pem
+	cp "${PEM_DIR}/chain.pem" /etc/ipsec.d/cacerts
+	chmod 600 /etc/ipsec.d/cacerts/chain.pem
+	updated=`expr ${updated} + 1`
+fi
+
+[ ${updated} -eq 0 ] && exit 0
+systemctl reload-or-restart dovecot.service postfix.service vsftpd.service strongswan.service
+
+exit 0

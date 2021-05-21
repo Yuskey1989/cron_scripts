@@ -1,0 +1,22 @@
+#!/bin/sh
+
+SRC="/etc /home"
+DST=""
+NAME="`hostname`_backup_`date +%Y%m%d`"
+
+for dir in ${SRC}
+do
+	[ -d "${dir}" ] || exit 1
+done
+[ -d "${DST}" ] || exit 1
+
+tmpfile=`mktemp`
+for dir in ${SRC}
+do
+	tar rf ${tmpfile} ${dir}
+done
+
+cat ${tmpfile} | gzip > ${DST}/${NAME}.tar.gz
+rm -f ${tmpfile}
+
+exit 0

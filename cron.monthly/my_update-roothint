@@ -1,0 +1,21 @@
+#!/bin/sh
+
+NEW_ROOTHINT="ftp://rs.internic.net/domain/named.cache"
+LOCAL_ROOTHINT="/etc/bind/db.root"
+
+[ -e "${LOCAL_ROOTHINT}" ] || exit 1
+temp_roothint=`mktemp`
+
+quit() {
+	rm ${temp_roothint} > /dev/null 2>&1
+	exit $1
+}
+
+wget ${NEW_ROOTHINT} -O ${temp_roothint} > /dev/null 2>&1 || quit $?
+diff -q ${LOCAL_ROOTHINT} ${temp_roothint} > /dev/null 2>&1 && quit $?
+mv -f ${temp_roothint} ${LOCAL_ROOTHINT} > /dev/null 2>&1 || quit $?
+chmod +r ${LOCAL_ROOTHINT} > /dev/null 2>&1 || quit $?
+#service bind9 restart > /dev/null 2>&1 || quit $?
+systemctl reload-or-restart bind9.service > /dev/null 2>&1 || exit $?
+
+exit 0

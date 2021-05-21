@@ -1,0 +1,25 @@
+#!/bin/sh
+
+script_dir=`dirname $0`
+
+# AdblockPlus -> Privoxy フィルタ変換スクリプトからPrivoxyのパスを抽出
+privoxydir=`cat ${script_dir}/privoxy-adblock.sh | grep defaultprivoxydir | head -n 1 | cut -d '"' -f 2`
+
+# 280blockerはダウンロードする月毎にURLが変わる
+filter_280blocker="280blocker_adblock_`date +%Y%m`"
+
+# 変換スクリプトのフィルタURL編集
+sed -i -e "s/280blocker_adblock_.*.txt/${filter_280blocker}.txt/g" ${script_dir}/privoxy-adblock.sh
+
+# 変換スクリプト実行
+bash ${script_dir}/privoxy-adblock.sh
+
+# 変換後の280blockerをPrivoxy config記載名にリネーム
+mv ${privoxydir}/${filter_280blocker}.script.action ${privoxydir}/280blocker_adblock.script.action
+mv ${privoxydir}/${filter_280blocker}.script.filter ${privoxydir}/280blocker_adblock.script.filter
+
+# Privoxy 再起動
+systemctl reload-or-restart privoxy.service
+
+exit 0
+
